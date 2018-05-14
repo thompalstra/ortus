@@ -17,7 +17,11 @@ return [
     "className" => "\app\web\Controller",
     "default" => "std",
     "actionDefault" => "index",
-    "actionError" => "error"
+    "actionError" => "error",
+    "layout" => "main"
   ],
+  "renderer" => [
+    "className" => "\app\html\Renderer"
+  ]
 ];
 ?>

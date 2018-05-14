@@ -15,12 +15,9 @@ class Events{
       "afterHandle"
     ]
   ];
-  public static function beforeParse( $event ){
-    // echo 'before...';
-    // $event->preventDefault();
-  }
-  public static function afterParse( $event ){
-    // echo 'after';
-  }
+  public static function beforeParse( $event ){}
+  public static function afterParse( $event ){}
+  public static function beforeHandle( $event ){}
+  public static function afterHandle( $event ){}
 }
 ?>

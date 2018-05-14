@@ -1,26 +1,51 @@
 <?php
 namespace app\web;
 class Controller extends \app\core\Base{
-  public function runAction( $actionId, $params ){
 
+  public function render( $fp, $data = [] ){
+
+    $ds = \Core::$app->ds;
+    $root = \Core::$app->root;
+    $environmentDirectory =  \Core::$app->environment->directory;
+
+    if( $fp[0] == "/" || $fp[0] == $ds ){
+      $fp = substr( $fp, 1, strlen( $fp ) );
+      $sourcePath = "";
+    } else {
+      $sourcePath = debug_backtrace()[0]['file'];
+      $sourcePath = str_replace( \Core::$app->controller->name, \Core::$app->controller->id, $sourcePath );
+      $sourcePath = str_replace( "controllers", "views", $sourcePath );
+      $sourcePath = str_replace( ".php", "", $sourcePath );
+      $sourcePath = str_replace( \Core::$app->root, "", $sourcePath );
+      $fp = "{$ds}{$fp}";
+    }
+    $layout = \Core::$app->controller->layout;
+    $viewFilePath = "{$ds}{$sourcePath}{$fp}";
+    $layoutFilePath = "{$ds}{$environmentDirectory}views{$ds}layouts{$ds}{$layout}";
+
+    header("HTTP/1.0 200 OK");
+    echo \Core::$app->renderer->renderFile( $layoutFilePath, [
+      "content" => \Core::$app->renderer->renderFile( $viewFilePath )
+    ] );
+    exit();
+  }
+
+  public function runAction( $actionId, $params ){
     if( method_exists( $this, 'beforeAction' ) && call_user_func_array( [ $this, 'beforeAction' ], [ $actionId ] ) !== true ){
       call_user_func_array( [ $this, 'runError' ], [ "Not Allowed", 405 ] );
       exit();
     }
 
-
-
     $actionName = self::actionFromId( $actionId );
     if( method_exists( $this, $actionName ) ){
-
-
       call_user_func_array( [ $this, $actionName ], $params );
     } else {
       call_user_func_array( [ $this, 'runError' ], [ "Not Found", 404 ] );
     }
 
     if( method_exists( $this, 'afterAction' ) && call_user_func_array( [ $this, 'afterAction' ], [ $actionId ] ) !== true ){
-      echo 'not allowed'; exit();
+      call_user_func_array( [ $this, 'runError' ], [ "Not Allowed", 405 ] );
+      exit();
     }
   }
 
@@ -50,10 +75,12 @@ class Controller extends \app\core\Base{
 
     if( class_exists( $controllerNameSpace ) ){
       $actionName = self::actionFromId( $actionId );
-
       $args = [
         "id" => $controllerId,
+        "name" => $controllerName,
+        "nameSpace" => $controllerNameSpace,
         "actionId" => $actionId,
+        "layout" => \Core::$app->config["controller"]["layout"],
         "directory" => \Core::$app->normalizePath( "{$environmentName}{$ds}controllers{$path}" ),
         "viewPath" => \Core::$app->normalizePath( "{$environmentName}{$ds}views{$path}{$controllerId}{$ds}" ),
         "layoutPath" => \Core::$app->normalizePath( "$environmentName{$ds}views{$ds}layouts{$ds}" )

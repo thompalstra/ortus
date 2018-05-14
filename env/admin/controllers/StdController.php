@@ -1,5 +1,5 @@
 <?php
-namespace content\controllers;
+namespace admin\controllers;
 class StdController extends \app\web\Controller{
   public function beforeAction( $actionId ){
     return true;
@@ -8,8 +8,15 @@ class StdController extends \app\web\Controller{
     return true;
   }
   public function actionIndex(){
-    set_title( "Welcome to Ortus" );
     return $this->render( "index" );
+  }
+  public function actionUser( $username ){
+    if( in_array( $username, [ "admin", "fred", "bob" ] ) ){
+      echo "<h2>Welcome {$username}</h2>";
+    } else {
+      return $this->runError( "User not found" );
+    }
+
   }
 }
 ?>

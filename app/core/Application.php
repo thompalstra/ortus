@@ -2,9 +2,16 @@
 class Application{
 
   public $config = [];
+  public $params = [
+    "title" => "My website",
+    "assets" => [
+      "head" => [],
+      "footer" => []
+    ]
+  ];
 
   public function __construct(){
-
+    
     $root = $this->root = dirname( dirname( __DIR__ ) ) . DIRECTORY_SEPARATOR;
     $ds = $this->ds = DIRECTORY_SEPARATOR;
 
@@ -14,15 +21,41 @@ class Application{
 
     include( "{$root}app{$ds}core{$ds}autoload{$ds}base_autoload.php" );
 
-    $this->config = include( "{$root}config.php" );
+    if( file_exists( "{$root}config.php" ) ){
+      $this->config = include( "{$root}config.php" );
+    }
+
+    if( file_exists( "{$root}functions.php" ) ){
+      include( "{$root}functions.php" );
+    }
+
+    if( file_exists( "{$root}app{$ds}core{$ds}hooks.php" ) ){
+      include( "{$root}app{$ds}core{$ds}hooks.php" );
+    }
 
     $environmentClassName = $this->config["environment"]["className"];
     $controllerClassName = $this->config["controller"]["className"];
     $eventManagerClassName = $this->config["eventManager"]["className"];
+    $rendererClassName = $this->config["renderer"]["className"];
 
     $this->environment = new $environmentClassName();
     $this->controller = new $controllerClassName();
     $this->eventManager = new $eventManagerClassName();
+    $this->renderer = new $rendererClassName();
+
+    $environmentDirectory = $this->environment->directory;
+
+    if( file_exists( "{$root}{$environmentDirectory}config.php" ) ){
+      foreach( include( "{$root}{$environmentDirectory}config.php" ) as $k => $v ){
+        $this->config[$k] = $v;
+      }
+    }
+
+    if( file_exists( "{$root}{$environmentDirectory}functions.php" ) ){
+      include( "{$root}{$environmentDirectory}functions.php" );
+    }
+
+
   }
 
   public function normalizePath( $path ){
@@ -30,10 +63,6 @@ class Application{
   }
   public function normalizeNamespace( $path ){
     return str_replace( "/", "\\", $path );
-  }
-
-  public function start(){
-
   }
 
   public function parseRequest(){
@@ -58,4 +87,6 @@ class Application{
     $this->eventManager->dispatchEvent( new \app\web\Event( "afterHandle", [] ) );
   }
 }
+
+
 ?>
