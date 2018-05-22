@@ -4,14 +4,9 @@ class Application{
   public $config = [];
   public $params = [
     "title" => "My website",
-    "assets" => [
-      "head" => [],
-      "footer" => []
-    ]
   ];
 
   public function __construct(){
-    
     $root = $this->root = dirname( dirname( __DIR__ ) ) . DIRECTORY_SEPARATOR;
     $ds = $this->ds = DIRECTORY_SEPARATOR;
 
